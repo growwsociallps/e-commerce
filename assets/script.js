@@ -1,4 +1,4 @@
-fetch("https://script.google.com/macros/s/AKfycbxyXQonPDzy9PRo8MmPBmdRL-2MF2OnwbCbDyrYqVVvCfA4j9sPGgxjg-huuCBhnLEB/exec")
+fetch("YOUR_GOOGLE_APPS_SCRIPT_URL")
   .then(response => response.json())
   .then(data => {
     let productContainer = document.getElementById("products");
@@ -13,10 +13,3 @@ fetch("https://script.google.com/macros/s/AKfycbxyXQonPDzy9PRo8MmPBmdRL-2MF2Onwb
       productContainer.appendChild(div);
     });
   });
-
-function addToCart(id, name, price) {
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  cart.push({ id, name, price, quantity: 1 });
-  localStorage.setItem("cart", JSON.stringify(cart));
-  alert("Added to cart!");
-}
