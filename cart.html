@@ -1,0 +1,24 @@
+<h2>Your Shopping Cart</h2>
+<div id="cart-items"></div>
+<button onclick="checkout()">Proceed to Checkout</button>
+
+<script>
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  let cartDiv = document.getElementById("cart-items");
+
+  cart.forEach((item, index) => {
+    let div = document.createElement("div");
+    div.innerHTML = `${item.name} - ₹${item.price} <button onclick="removeItem(${index})">Remove</button>`;
+    cartDiv.appendChild(div);
+  });
+
+  function removeItem(index) {
+    cart.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    location.reload();
+  }
+
+  function checkout() {
+    window.location.href = "checkout.html";
+  }
+</script>
