@@ -1,0 +1,22 @@
+<h2>Checkout</h2>
+<input type="text" id="name" placeholder="Your Name">
+<input type="text" id="address" placeholder="Your Address">
+<button onclick="payNow()">Pay Now</button>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  function payNow() {
+    let options = {
+      "key": "YOUR_RAZORPAY_KEY",
+      "amount": 50000, // Amount in paisa (₹500)
+      "currency": "INR",
+      "name": "My Store",
+      "description": "Test Transaction",
+      "handler": function (response) {
+        alert("Payment Successful! Order ID: " + response.razorpay_payment_id);
+      }
+    };
+    let rzp = new Razorpay(options);
+    rzp.open();
+  }
+</script>
