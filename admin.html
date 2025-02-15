@@ -51,7 +51,10 @@
             };
             fetch(scriptURL, { method: 'POST', body: JSON.stringify(data) })
                 .then(res => res.json())
-                .then(() => fetchProducts());
+                .then(() => {
+                    alert('Product added successfully!');
+                    location.reload();
+                });
         }
 
         function fetchProducts() {
@@ -74,8 +77,13 @@
         }
 
         function deleteProduct(index) {
-            fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'delete', index }) })
-                .then(() => fetchProducts());
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch(scriptURL, { method: 'POST', body: JSON.stringify({ action: 'delete', index }) })
+                    .then(() => {
+                        alert('Product deleted successfully!');
+                        location.reload();
+                    });
+            }
         }
 
         fetchProducts();
