@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Product Management</title>
+  <style>
+    /* Basic styling */
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .container { max-width: 800px; margin: auto; }
+    h1, h2 { text-align: center; }
+    form { margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%; padding: 8px; margin-top: 5px;
+    }
+    button { margin-top: 10px; padding: 10px 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table, th, td { border: 1px solid #ccc; }
+    th, td { padding: 10px; text-align: left; }
+    .actions button { margin-right: 5px; }
+    img { max-width: 50px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Product Management</h1>
+    
+    <h2>Add / Edit Product</h2>
+    <form id="productForm">
+      <!-- Hidden field for editing (stores the Google Sheet row number) -->
+      <input type="hidden" id="rowNumber" value="">
+      
+      <label for="title">Product Title</label>
+      <input type="text" id="title" required>
+      
+      <label for="price">Price</label>
+      <input type="number" id="price" step="0.01" required>
+      
+      <label for="stock">Stock</label>
+      <input type="number" id="stock" required>
+      
+      <label for="description">Description</label>
+      <textarea id="description" rows="4" required></textarea>
+      
+      <label for="imageUrl">Image URL</label>
+      <input type="text" id="imageUrl" required>
+      
+      <button type="submit">Submit</button>
+      <button type="button" id="cancelEdit" style="display:none;">Cancel Edit</button>
+    </form>
+    
+    <h2>Products</h2>
+    <table id="productsTable">
+      <thead>
+        <tr>
+          <th>Row</th>
+          <th>Title</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Description</th>
+          <th>Image</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Product rows will be added here -->
+      </tbody>
+    </table>
+  </div>
+  
+  <script>
+    // Replace with your Google Apps Script Web App URL
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxyXQonPDzy9PRo8MmPBmdRL-2MF2OnwbCbDyrYqVVvCfA4j9sPGgxjg-huuCBhnLEB/exec';
+    
+    // Load products from the Google Sheet
+    function loadProducts() {
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector('#productsTable tbody');
+        tbody.innerHTML = '';
+        data.forEach(product => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${product.row}</td>
+            <td>${product.title}</td>
+            <td>${product.price}</td>
+            <td>${product.stock}</td>
+            <td>${product.description}</td>
+            <td><img src="${product.imageUrl}" alt="${product.title}"></td>
+            <td class="actions">
+              <button onclick="editProduct(${product.row}, \`${escapeQuotes(product.title)}\`, ${product.price}, ${product.stock}, \`${escapeQuotes(product.description)}\`, \`${escapeQuotes(product.imageUrl)}\`)">Edit</button>
+              <button onclick="deleteProduct(${product.row})">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => console.error('Error loading products:', err));
+    }
+    
+    // Escape backticks and quotes for safe insertion into the HTML
+    function escapeQuotes(str) {
+      return str.replace(/`/g, "\\`").replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+    
+    // Handle add/edit form submission
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const rowNumber = document.getElementById('rowNumber').value;
+      const productData = {
+        title: document.getElementById('title').value,
+        price: parseFloat(document.getElementById('price').value),
+        stock: parseInt(document.getElementById('stock').value),
+        description: document.getElementById('description').value,
+        imageUrl: document.getElementById('imageUrl').value
+      };
+      
+      let payload = {};
+      if (rowNumber) {
+        // Editing an existing product
+        payload = { action: 'edit', row: parseInt(rowNumber), data: productData };
+      } else {
+        // Adding a new product
+        payload = { action: 'add', data: productData };
+      }
+      
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        document.getElementById('productForm').reset();
+        document.getElementById('rowNumber').value = '';
+        document.getElementById('cancelEdit').style.display = 'none';
+        loadProducts();
+      })
+      .catch(err => console.error('Error submitting product:', err));
+    });
+    
+    // Prepare the form for editing a product
+    function editProduct(row, title, price, stock, description, imageUrl) {
+      document.getElementById('rowNumber').value = row;
+      document.getElementById('title').value = title;
+      document.getElementById('price').value = price;
+      document.getElementById('stock').value = stock;
+      document.getElementById('description').value = description;
+      document.getElementById('imageUrl').value = imageUrl;
+      document.getElementById('cancelEdit').style.display = 'inline';
+      window.scrollTo(0,0);
+    }
+    
+    // Cancel editing mode and clear the form
+    document.getElementById('cancelEdit').addEventListener('click', function() {
+      document.getElementById('productForm').reset();
+      document.getElementById('rowNumber').value = '';
+      this.style.display = 'none';
+    });
+    
+    // Delete a product
+    function deleteProduct(row) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', row: row })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        loadProducts();
+      })
+      .catch(err => console.error('Error deleting product:', err));
+    }
+    
+    // Initial load of products when the page is ready
+    loadProducts();
+  </script>
+</body>
+</html>
