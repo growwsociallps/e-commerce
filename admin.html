@@ -18,7 +18,9 @@
         <h2>Product Management</h2>
         <input type="text" id="title" placeholder="Product Title">
         <input type="number" id="price" placeholder="Price">
-        <input type="text" id="image" placeholder="Image URL">
+        <input type="text" id="image1" placeholder="Image URL 1">
+        <input type="text" id="image2" placeholder="Image URL 2 (optional)">
+        <input type="text" id="image3" placeholder="Image URL 3 (optional)">
         <textarea id="description" placeholder="Description"></textarea>
         <input type="number" id="stock" placeholder="Stock">
         <button onclick="addProduct()">Add Product</button>
@@ -30,6 +32,7 @@
                     <th>Title</th>
                     <th>Price</th>
                     <th>Stock</th>
+                    <th>Images</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -41,11 +44,17 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwNR2i-Zr6Bx-5VGazRWMtAPXuZzKdeMhBv60DhoQiEkbCLG4krqs1hcWJQoeduTrJ9nw/exec';
 
         function addProduct() {
+            let images = [
+                document.getElementById('image1').value,
+                document.getElementById('image2').value,
+                document.getElementById('image3').value
+            ].filter(img => img.trim() !== "");
+
             let data = {
                 action: 'add',
                 title: document.getElementById('title').value,
                 price: document.getElementById('price').value,
-                image: document.getElementById('image').value,
+                images: images,
                 description: document.getElementById('description').value,
                 stock: document.getElementById('stock').value
             };
@@ -64,11 +73,13 @@
                     let productList = document.getElementById('product-list');
                     productList.innerHTML = '';
                     data.forEach((product, index) => {
+                        let imagesHTML = product.images.map(img => `<img src="${img}" width="50">`).join(' ');
                         productList.innerHTML += `
                             <tr>
                                 <td>${product.title}</td>
                                 <td>${product.price}</td>
                                 <td>${product.stock}</td>
+                                <td>${imagesHTML}</td>
                                 <td><button class="delete-btn" onclick="deleteProduct(${index})">Delete</button></td>
                             </tr>
                         `;
