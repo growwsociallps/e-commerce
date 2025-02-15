@@ -13,3 +13,10 @@ fetch("YOUR_GOOGLE_APPS_SCRIPT_URL")
       productContainer.appendChild(div);
     });
   });
+
+function addToCart(id, name, price) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  cart.push({ id, name, price, quantity: 1 });
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert("Added to cart!");
+}
